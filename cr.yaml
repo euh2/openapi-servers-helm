@@ -1,0 +1,8 @@
+# cr.yaml - Chart Releaser configuration
+owner: euh2
+git-repo: openapi-servers
+charts-dir: charts
+target-branch: main
+pages-branch: gh-pages
+release-name-template: "{{ .Name }}-{{ .Version }}"
+make-release-latest: true

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAPI Servers Helm Repository</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .install-box {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin: 2rem 0;
+        }
+        .code {
+            background: #1e1e1e;
+            color: #e6e6e6;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            overflow-x: auto;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .tool-card {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tool-card h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            background: #007bff;
+            color: white;
+            border-radius: 3px;
+        }
+        .links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        .link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .link:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 OpenAPI Servers</h1>
+        <p>Helm Repository for OpenAPI Server Tools</p>
+    </div>
+
+    <div class="install-box">
+        <h2>📦 Quick Start</h2>
+        <p>Add this Helm repository and install the charts:</p>
+        <div class="code">
+# Add the repository<br>
+helm repo add openapi-servers https://euh2.github.io/openapi-servers<br>
+helm repo update<br><br>
+
+# Install the chart<br>
+helm install my-api-tools openapi-servers/openapi-servers<br><br>
+
+# Install with custom values<br>
+helm install my-api-tools openapi-servers/openapi-servers -f values.yaml
+        </div>
+    </div>
+
+    <h2>🛠️ Available Tools</h2>
+    <div class="tools-grid">
+        <div class="tool-card">
+            <h3>🗂️ Filesystem</h3>
+            <p>Secure file system operations with configurable restrictions.</p>
+            <span class="badge">Storage</span>
+        </div>
+        <div class="tool-card">
+            <h3>🌤️ Weather</h3>
+            <p>Current weather conditions and forecasts from trusted APIs.</p>
+            <span class="badge">API</span>
+        </div>
+        <div class="tool-card">
+            <h3>🧠 Memory</h3>
+            <p>Persistent memory management and semantic knowledge querying.</p>
+            <span class="badge">AI/ML</span>
+        </div>
+        <div class="tool-card">
+            <h3>💬 Slack</h3>
+            <p>Slack integration and bot operations.</p>
+            <span class="badge">Integration</span>
+        </div>
+        <div class="tool-card">
+            <h3>⏰ Time</h3>
+            <p>Date/time utilities and timezone handling.</p>
+            <span class="badge">Utility</span>
+        </div>
+        <div class="tool-card">
+            <h3>👤 User Info</h3>
+            <p>Access and return enriched user profile information.</p>
+            <span class="badge">Auth</span>
+        </div>
+    </div>
+
+    <h2>📚 Documentation</h2>
+    <div class="install-box">
+        <div class="code">
+# View available charts<br>
+helm search repo openapi-servers<br><br>
+
+# Get chart information<br>
+helm show chart openapi-servers/openapi-servers<br>
+helm show values openapi-servers/openapi-servers<br><br>
+
+# Deploy to different environments<br>
+helm install dev-api openapi-servers/openapi-servers -f dev-values.yaml<br>
+helm install prod-api openapi-servers/openapi-servers -f prod-values.yaml
+        </div>
+    </div>
+
+    <div class="links">
+        <a href="https://github.com/euh2/openapi-servers" class="link">📖 Documentation</a>
+        <a href="https://github.com/euh2/openapi-servers-builder" class="link">🏗️ Builder</a>
+        <a href="https://github.com/open-webui/openapi-servers" class="link">🔧 Upstream</a>
+    </div>
+
+    <footer style="text-align: center; margin-top: 3rem; padding: 2rem; color: #6c757d; border-top: 1px solid #e1e5e9;">
+        <p>Built with ❤️ for the Open-WebUI community</p>
+        <p>Licensed under MIT • <a href="https://github.com/euh2/openapi-servers/issues">Report Issues</a></p>
+    </footer>
+</body>
+</html>
