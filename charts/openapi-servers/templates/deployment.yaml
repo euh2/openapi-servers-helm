@@ -1,0 +1,85 @@
+{{- range $toolName, $toolConfig := .Values.tools }}
+{{- if $toolConfig.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openapi-servers.fullname" $ }}-{{ $toolName }}
+  labels:
+    {{- include "openapi-servers.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $toolName }}
+spec:
+  replicas: {{ $toolConfig.replicas | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "openapi-servers.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $toolName }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
+      labels:
+        {{- include "openapi-servers.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $toolName }}
+    spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "openapi-servers.serviceAccountName" $ }}
+      securityContext:
+        {{- toYaml ($.Values.podSecurityContext | default dict) | nindent 8 }}
+      containers:
+        - name: {{ $toolName }}
+          securityContext:
+            {{- toYaml ($.Values.securityContext | default dict) | nindent 12 }}
+          image: "{{ $.Values.global.registry }}/{{ $.Values.global.repository }}/{{ $toolConfig.image.repository }}:{{ $toolConfig.image.tag | default $.Values.global.tag }}"
+          imagePullPolicy: {{ $.Values.global.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $toolConfig.service.targetPort | default 8000 }}
+              protocol: TCP
+          {{- if $toolConfig.env }}
+          env:
+            {{- toYaml $toolConfig.env | nindent 12 }}
+          {{- end }}
+          {{- if $toolConfig.volumeMounts }}
+          volumeMounts:
+            {{- toYaml $toolConfig.volumeMounts | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ $toolConfig.healthCheck.path | default "/health" }}
+              port: http
+            initialDelaySeconds: {{ $toolConfig.healthCheck.initialDelaySeconds | default 30 }}
+            periodSeconds: {{ $toolConfig.healthCheck.periodSeconds | default 10 }}
+            timeoutSeconds: {{ $toolConfig.healthCheck.timeoutSeconds | default 5 }}
+            failureThreshold: {{ $toolConfig.healthCheck.failureThreshold | default 3 }}
+          readinessProbe:
+            httpGet:
+              path: {{ $toolConfig.healthCheck.path | default "/health" }}
+              port: http
+            initialDelaySeconds: {{ $toolConfig.healthCheck.initialDelaySeconds | default 5 }}
+            periodSeconds: {{ $toolConfig.healthCheck.periodSeconds | default 5 }}
+            timeoutSeconds: {{ $toolConfig.healthCheck.timeoutSeconds | default 3 }}
+            failureThreshold: {{ $toolConfig.healthCheck.failureThreshold | default 3 }}
+          resources:
+            {{- toYaml ($toolConfig.resources | default $.Values.global.resources) | nindent 12 }}
+      {{- if $toolConfig.volumes }}
+      volumes:
+        {{- toYaml $toolConfig.volumes | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}

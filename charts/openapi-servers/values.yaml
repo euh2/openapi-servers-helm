@@ -1,0 +1,243 @@
+# Global configuration
+global:
+  registry: ghcr.io
+  repository: euh2
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+  # Global resource limits
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Global service configuration
+  service:
+    type: ClusterIP
+    port: 8000
+
+  # Global ingress configuration
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    tls: []
+
+# Individual tool configurations
+tools:
+  filesystem:
+    enabled: true
+    image:
+      repository: openapi-servers-filesystem
+      tag: "" # Uses global.tag if empty
+
+    service:
+      port: 8000
+      targetPort: 8000
+
+    env:
+      - name: ALLOWED_PATHS
+        value: "/tmp,/data"
+      - name: MAX_FILE_SIZE
+        value: "10485760" # 10MB
+
+    volumes:
+      - name: data-volume
+        emptyDir: {}
+
+    volumeMounts:
+      - name: data-volume
+        mountPath: /data
+
+    ingress:
+      enabled: false
+      path: /filesystem
+      pathType: Prefix
+
+  weather:
+    enabled: true
+    image:
+      repository: openapi-servers-weather
+      tag: ""
+
+    service:
+      port: 8000
+      targetPort: 8000
+
+    env:
+      - name: WEATHER_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: weather-secrets
+            key: api-key
+            optional: true
+
+    ingress:
+      enabled: false
+      path: /weather
+      pathType: Prefix
+
+  memory:
+    enabled: true
+    image:
+      repository: openapi-servers-memory
+      tag: ""
+
+    service:
+      port: 8000
+      targetPort: 8000
+
+    env:
+      - name: MEMORY_BACKEND
+        value: "file"
+      - name: MEMORY_PATH
+        value: "/data/memory"
+
+    volumes:
+      - name: memory-storage
+        persistentVolumeClaim:
+          claimName: memory-pvc
+
+    volumeMounts:
+      - name: memory-storage
+        mountPath: /data
+
+    persistence:
+      enabled: true
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 1Gi
+
+    ingress:
+      enabled: false
+      path: /memory
+      pathType: Prefix
+
+  slack:
+    enabled: true
+    image:
+      repository: openapi-servers-slack
+      tag: ""
+
+    service:
+      port: 8000
+      targetPort: 8000
+
+    env:
+      - name: SLACK_BOT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: slack-secrets
+            key: bot-token
+            optional: true
+      - name: SLACK_SIGNING_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: slack-secrets
+            key: signing-secret
+            optional: true
+
+    ingress:
+      enabled: false
+      path: /slack
+      pathType: Prefix
+
+  time:
+    enabled: true
+    image:
+      repository: openapi-servers-time
+      tag: ""
+
+    service:
+      port: 8000
+      targetPort: 8000
+
+    env:
+      - name: DEFAULT_TIMEZONE
+        value: "UTC"
+
+    ingress:
+      enabled: false
+      path: /time
+      pathType: Prefix
+
+  get-user-info:
+    enabled: true
+    image:
+      repository: openapi-servers-get-user-info
+      tag: ""
+
+    service:
+      port: 8000
+      targetPort: 8000
+
+    env:
+      - name: USER_INFO_SOURCE
+        value: "headers"
+
+    ingress:
+      enabled: false
+      path: /user-info
+      pathType: Prefix
+
+# Global ingress for all tools (alternative to individual ingress)
+globalIngress:
+  enabled: false
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+  host: api.example.com
+  tls:
+    enabled: false
+    secretName: api-tls
+
+# Service Monitor for Prometheus (if using)
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  interval: 30s
+  path: /metrics
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext: {}
+
+# Container Security Context
+securityContext: {}
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Global configuration (shared across all tools)
+globalConfig: {}

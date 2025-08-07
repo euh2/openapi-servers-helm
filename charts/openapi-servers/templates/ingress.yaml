@@ -1,0 +1,81 @@
+{{- if .Values.globalIngress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "openapi-servers.fullname" . }}-global
+  labels:
+    {{- include "openapi-servers.labels" . | nindent 4 }}
+  {{- with .Values.globalIngress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.globalIngress.className }}
+  ingressClassName: {{ .Values.globalIngress.className }}
+  {{- end }}
+  {{- if .Values.globalIngress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.globalIngress.host }}
+      secretName: {{ .Values.globalIngress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.globalIngress.host }}
+      http:
+        paths:
+        {{- range $toolName, $toolConfig := .Values.tools }}
+        {{- if $toolConfig.enabled }}
+        - path: /{{ $toolName }}(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ include "openapi-servers.fullname" $ }}-{{ $toolName }}
+              port:
+                number: {{ $toolConfig.service.port | default $.Values.global.service.port }}
+        {{- end }}
+        {{- end }}
+{{- end }}
+
+{{- range $toolName, $toolConfig := .Values.tools }}
+{{- if and $toolConfig.enabled $toolConfig.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "openapi-servers.fullname" $ }}-{{ $toolName }}
+  labels:
+    {{- include "openapi-servers.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $toolName }}
+  {{- with $toolConfig.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $toolConfig.ingress.className }}
+  ingressClassName: {{ $toolConfig.ingress.className }}
+  {{- end }}
+  {{- if $toolConfig.ingress.tls }}
+  tls:
+    {{- range $toolConfig.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range $toolConfig.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        - path: {{ $toolConfig.ingress.path | default "/" }}
+          pathType: {{ $toolConfig.ingress.pathType | default "Prefix" }}
+          backend:
+            service:
+              name: {{ include "openapi-servers.fullname" $ }}-{{ $toolName }}
+              port:
+                number: {{ $toolConfig.service.port | default $.Values.global.service.port }}
+    {{- end }}
+{{- end }}
+{{- end }}

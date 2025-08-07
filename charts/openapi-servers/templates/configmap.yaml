@@ -1,0 +1,29 @@
+{{- if .Values.globalConfig }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openapi-servers.fullname" . }}-config
+  labels:
+    {{- include "openapi-servers.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.globalConfig }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
+
+{{- range $toolName, $toolConfig := .Values.tools }}
+{{- if and $toolConfig.enabled $toolConfig.config }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openapi-servers.fullname" $ }}-{{ $toolName }}-config
+  labels:
+    {{- include "openapi-servers.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $toolName }}
+data:
+  {{- range $key, $value := $toolConfig.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,107 @@
+# Development environment values
+# Override the main values.yaml for development settings
+
+global:
+  tag: "latest"
+  pullPolicy: Always
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# Enable more tools for development testing
+tools:
+  filesystem:
+    enabled: true
+    env:
+      - name: ALLOWED_PATHS
+        value: "/tmp,/data,/workspace"
+      - name: DEBUG
+        value: "true"
+    
+    ingress:
+      enabled: true
+      path: /dev/filesystem
+      pathType: Prefix
+
+  weather:
+    enabled: true
+    env:
+      - name: DEBUG
+        value: "true"
+    
+    ingress:
+      enabled: true
+      path: /dev/weather
+      pathType: Prefix
+
+  memory:
+    enabled: true
+    persistence:
+      enabled: false  # Use emptyDir for dev
+    
+    volumes:
+      - name: memory-storage
+        emptyDir: {}
+    
+    env:
+      - name: DEBUG
+        value: "true"
+    
+    ingress:
+      enabled: true
+      path: /dev/memory
+      pathType: Prefix
+
+  slack:
+    enabled: false  # Usually disabled in dev
+
+  time:
+    enabled: true
+    env:
+      - name: DEFAULT_TIMEZONE
+        value: "Europe/Oslo"
+      - name: DEBUG
+        value: "true"
+    
+    ingress:
+      enabled: true
+      path: /dev/time
+      pathType: Prefix
+
+  get-user-info:
+    enabled: true
+    env:
+      - name: DEBUG
+        value: "true"
+      - name: MOCK_USER_DATA
+        value: "true"
+    
+    ingress:
+      enabled: true
+      path: /dev/user-info
+      pathType: Prefix
+
+# Global ingress for all dev tools
+globalIngress:
+  enabled: true
+  className: "nginx"
+  host: dev-api.local
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # For development, allow larger request sizes
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+
+# Enable monitoring in dev
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+# No autoscaling in dev
+autoscaling:
+  enabled: false

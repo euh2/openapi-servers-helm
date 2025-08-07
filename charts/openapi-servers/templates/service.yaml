@@ -1,0 +1,22 @@
+{{- range $toolName, $toolConfig := .Values.tools }}
+{{- if $toolConfig.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openapi-servers.fullname" $ }}-{{ $toolName }}
+  labels:
+    {{- include "openapi-servers.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $toolName }}
+spec:
+  type: {{ $toolConfig.service.type | default $.Values.global.service.type }}
+  ports:
+    - port: {{ $toolConfig.service.port | default $.Values.global.service.port }}
+      targetPort: {{ $toolConfig.service.targetPort | default 8000 }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "openapi-servers.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $toolName }}
+{{- end }}
+{{- end }}

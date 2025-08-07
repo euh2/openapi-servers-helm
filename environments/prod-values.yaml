@@ -1,0 +1,175 @@
+# Production environment values
+# High availability, security, and performance focused
+
+global:
+  tag: "v1.0.0" # Use specific version tags in prod
+  pullPolicy: IfNotPresent
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 128Mi
+
+tools:
+  filesystem:
+    enabled: true
+    replicas: 2 # High availability
+
+    env:
+      - name: ALLOWED_PATHS
+        value: "/data"
+      - name: MAX_FILE_SIZE
+        value: "104857600" # 100MB
+      - name: LOG_LEVEL
+        value: "INFO"
+
+    persistence:
+      enabled: true
+      storageClass: "fast-ssd"
+      size: "20Gi"
+
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 200Mi
+
+  weather:
+    enabled: true
+    replicas: 2
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  memory:
+    enabled: true
+    replicas: 2
+
+    persistence:
+      enabled: true
+      storageClass: "fast-ssd"
+      size: "10Gi"
+
+    resources:
+      limits:
+        cpu: 1500m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+  slack:
+    enabled: true
+    replicas: 2
+
+  time:
+    enabled: true
+    replicas: 2
+
+    env:
+      - name: DEFAULT_TIMEZONE
+        value: "UTC"
+      - name: LOG_LEVEL
+        value: "INFO"
+
+  get-user-info:
+    enabled: true
+    replicas: 2
+
+# Production ingress with proper TLS
+globalIngress:
+  enabled: true
+  className: "nginx"
+  host: api.example.com
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: SAMEORIGIN";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+  tls:
+    enabled: true
+    secretName: api-tls
+
+# Production monitoring
+serviceMonitor:
+  enabled: true
+  namespace: monitoring
+  interval: 30s
+  path: /metrics
+
+# High availability settings
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50% # Always keep at least 50% of pods running
+
+# Production autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 70
+
+# Production security contexts
+podSecurityContext:
+  fsGroup: 2000
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Node selection for production workloads
+nodeSelector:
+  node-type: "production"
+
+# Pod anti-affinity for better distribution
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - openapi-servers
+          topologyKey: kubernetes.io/hostname
+
+# Tolerate production node taints
+tolerations:
+  - key: "production"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+# Image pull secrets for private registry (if needed)
+imagePullSecrets:
+  - name: ghcr-secret

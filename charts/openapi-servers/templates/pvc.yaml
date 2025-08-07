@@ -1,0 +1,21 @@
+{{- range $toolName, $toolConfig := .Values.tools }}
+{{- if and $toolConfig.enabled $toolConfig.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $toolName }}-pvc
+  labels:
+    {{- include "openapi-servers.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $toolName }}
+spec:
+  accessModes:
+    - {{ $toolConfig.persistence.accessMode | default "ReadWriteOnce" }}
+  {{- if $toolConfig.persistence.storageClass }}
+  storageClassName: {{ $toolConfig.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $toolConfig.persistence.size | default "1Gi" }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,110 @@
+# Staging environment values
+# Production-like settings but with some debugging enabled
+
+global:
+  tag: "main"  # Use main branch builds
+  pullPolicy: IfNotPresent
+  
+  resources:
+    limits:
+      cpu: 800m
+      memory: 400Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+tools:
+  filesystem:
+    enabled: true
+    replicas: 1
+    env:
+      - name: ALLOWED_PATHS
+        value: "/data"
+      - name: MAX_FILE_SIZE
+        value: "52428800"  # 50MB
+    
+    persistence:
+      enabled: true
+      storageClass: "standard"
+      size: "5Gi"
+    
+    volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: filesystem-pvc
+    
+    volumeMounts:
+      - name: data-volume
+        mountPath: /data
+
+  weather:
+    enabled: true
+    replicas: 1
+
+  memory:
+    enabled: true
+    replicas: 1
+    persistence:
+      enabled: true
+      storageClass: "standard"
+      size: "2Gi"
+
+  slack:
+    enabled: true
+    replicas: 1
+
+  time:
+    enabled: true
+    replicas: 1
+    env:
+      - name: DEFAULT_TIMEZONE
+        value: "UTC"
+
+  get-user-info:
+    enabled: true
+    replicas: 1
+
+# Global ingress for staging
+globalIngress:
+  enabled: true
+  className: "nginx"
+  host: staging-api.example.com
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  tls:
+    enabled: true
+    secretName: staging-api-tls
+
+# Enable monitoring
+serviceMonitor:
+  enabled: true
+  namespace: monitoring
+  interval: 30s
+
+# Enable PDB for higher availability
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Basic autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+# Security contexts
+podSecurityContext:
+  fsGroup: 2000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true

@@ -1,0 +1,20 @@
+apiVersion: v2
+name: openapi-servers
+description: A Helm chart for deploying OpenAPI Server tools from open-webui/openapi-servers
+type: application
+version: 1.0.0
+appVersion: "latest"
+home: https://github.com/euh2/openapi-servers-helm
+sources:
+  - https://github.com/open-webui/openapi-servers
+  - https://github.com/euh2/openapi-servers-builder
+maintainers:
+  - name: euh2
+    url: https://github.com/euh2
+keywords:
+  - openapi
+  - ai-tools
+  - llm
+  - microservices
+annotations:
+  category: Application
