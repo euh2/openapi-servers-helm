@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'charts/**'
+      - "charts/**"
   pull_request:
     branches: [main]
     paths:
-      - 'charts/**'
+      - "charts/**"
 
 jobs:
   lint-and-test:
@@ -22,12 +22,12 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: '3.12.1'
+          version: "3.12.1"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
           check-latest: true
 
       - name: Set up chart-testing
@@ -36,14 +36,14 @@ jobs:
       - name: Run chart-testing (list)
         id: list
         run: |
-          changed=$(ct list --target-branch ${{ github.event.repository.default_branch }})
+          changed=$(ct list-changed --config .github/configs/ct.yaml)
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run chart-testing (lint)
         if: steps.list.outputs.changed == 'true'
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
+        run: ct lint --config .github/configs/ct.yaml
 
       - name: Create kind cluster
         if: steps.list.outputs.changed == 'true'
@@ -51,7 +51,7 @@ jobs:
 
       - name: Run chart-testing (install)
         if: steps.list.outputs.changed == 'true'
-        run: ct install --target-branch ${{ github.event.repository.default_branch }}
+        run: ct install --config .github/configs/ct.yaml
 
   release:
     if: github.ref == 'refs/heads/main'
@@ -75,7 +75,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: '3.12.1'
+          version: "3.12.1"
 
       - name: Add dependency repositories
         run: |
