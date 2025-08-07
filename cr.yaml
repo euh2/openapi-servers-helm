@@ -1,8 +1,11 @@
 # cr.yaml - Chart Releaser configuration
 owner: euh2
-git-repo: openapi-servers
+git-repo: openapi-servers # Update this to match your actual repository name
 charts-dir: charts
 target-branch: main
 pages-branch: gh-pages
+package-path: .cr-release-packages
+index-path: .cr-index/index.yaml
 release-name-template: "{{ .Name }}-{{ .Version }}"
 make-release-latest: true
+push: true

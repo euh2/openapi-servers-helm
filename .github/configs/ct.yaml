@@ -1,0 +1,23 @@
+# .github/configs/ct.yaml
+# Configuration for chart-testing tool
+
+remote: origin
+target-branch: main
+chart-dirs:
+  - charts
+check-version-increment: true
+debug: true
+
+# Helm chart validation
+validate-maintainers: false
+validate-yaml: true
+
+# Test configuration
+chart-repos:
+  - bitnami=https://charts.bitnami.com/bitnami
+
+# Skip charts that don't need testing
+excluded-charts: []
+
+# Additional helm arguments
+helm-extra-args: --timeout 600s

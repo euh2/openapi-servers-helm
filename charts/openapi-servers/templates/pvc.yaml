@@ -1,5 +1,5 @@
 {{- range $toolName, $toolConfig := .Values.tools }}
-{{- if and $toolConfig.enabled $toolConfig.persistence.enabled }}
+{{- if and $toolConfig.enabled $toolConfig.persistence $toolConfig.persistence.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

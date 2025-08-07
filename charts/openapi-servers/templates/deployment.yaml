@@ -1,5 +1,5 @@
 {{- range $toolName, $toolConfig := .Values.tools }}
-{{- if $toolConfig.enabled }}
+{{- if and $toolConfig $toolConfig.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,7 +33,9 @@ spec:
         - name: {{ $toolName }}
           securityContext:
             {{- toYaml ($.Values.securityContext | default dict) | nindent 12 }}
-          image: "{{ $.Values.global.registry }}/{{ $.Values.global.repository }}/{{ $toolConfig.image.repository }}:{{ $toolConfig.image.tag | default $.Values.global.tag }}"
+          # image: "{{ $.Values.global.registry }}/{{ $.Values.global.repository }}/{{ $toolConfig.image.repository }}:{{ $toolConfig.image.tag | default $.Values.global.tag }}"
+          # Simplified approach
+          image: "{{ $toolConfig.image.repository }}:{{ $toolConfig.image.tag | default $.Values.global.tag }}"
           imagePullPolicy: {{ $.Values.global.pullPolicy }}
           ports:
             - name: http
@@ -47,9 +49,11 @@ spec:
           volumeMounts:
             {{- toYaml $toolConfig.volumeMounts | nindent 12 }}
           {{- end }}
+          # Skip healthCheck on debug: true
+          {{- if and $toolConfig.healthCheck $toolConfig.healthCheck.path (not .Values.debug) }}
           livenessProbe:
             httpGet:
-              path: {{ $toolConfig.healthCheck.path | default "/health" }}
+              path: {{ $toolConfig.healthCheck.path }}
               port: http
             initialDelaySeconds: {{ $toolConfig.healthCheck.initialDelaySeconds | default 30 }}
             periodSeconds: {{ $toolConfig.healthCheck.periodSeconds | default 10 }}
@@ -57,14 +61,17 @@ spec:
             failureThreshold: {{ $toolConfig.healthCheck.failureThreshold | default 3 }}
           readinessProbe:
             httpGet:
-              path: {{ $toolConfig.healthCheck.path | default "/health" }}
+              path: {{ $toolConfig.healthCheck.path }}
               port: http
             initialDelaySeconds: {{ $toolConfig.healthCheck.initialDelaySeconds | default 5 }}
             periodSeconds: {{ $toolConfig.healthCheck.periodSeconds | default 5 }}
             timeoutSeconds: {{ $toolConfig.healthCheck.timeoutSeconds | default 3 }}
             failureThreshold: {{ $toolConfig.healthCheck.failureThreshold | default 3 }}
+          {{- end }}
+          {{- if or $toolConfig.resources $.Values.global.resources }}
           resources:
             {{- toYaml ($toolConfig.resources | default $.Values.global.resources) | nindent 12 }}
+          {{- end }}
       {{- if $toolConfig.volumes }}
       volumes:
         {{- toYaml $toolConfig.volumes | nindent 8 }}

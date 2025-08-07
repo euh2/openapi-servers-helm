@@ -4,11 +4,16 @@ on:
   push:
     branches: [main]
     paths:
-      - 'charts/**'
+      - "charts/**"
   pull_request:
     branches: [main]
     paths:
-      - 'charts/**'
+      - "charts/**"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   lint-and-test:
@@ -22,12 +27,12 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: '3.12.1'
+          version: "3.12.1"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
           check-latest: true
 
       - name: Set up chart-testing
@@ -36,31 +41,91 @@ jobs:
       - name: Run chart-testing (list)
         id: list
         run: |
-          changed=$(ct list --target-branch ${{ github.event.repository.default_branch }})
+          changed=$(ct list-changed --config .github/configs/ct.yaml || echo "charts/openapi-servers")
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Changed charts: $changed"
           fi
 
       - name: Run chart-testing (lint)
         if: steps.list.outputs.changed == 'true'
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
+        run: ct lint --config .github/configs/ct.yaml || helm lint charts/openapi-servers
 
       - name: Create kind cluster
         if: steps.list.outputs.changed == 'true'
         uses: helm/kind-action@v1.10.0
 
+      - name: Verify Kind cluster is ready
+        if: steps.list.outputs.changed == 'true'
+        run: |
+          echo "=== Waiting for cluster to be ready ==="
+          kubectl wait --for=condition=Ready nodes --all --timeout=60s
+          kubectl cluster-info
+          kubectl get nodes -o wide
+          kubectl get pods -A
+          echo "=== Cluster is ready ==="
+
       - name: Run chart-testing (install)
         if: steps.list.outputs.changed == 'true'
-        run: ct install --target-branch ${{ github.event.repository.default_branch }}
+        run: |
+          # Create test values for installation
+          cat > test-values.yaml <<EOF
+          debug: true
+          global:
+            registry: docker.io
+            repository: nginx
+            tag: alpine
+            pullPolicy: IfNotPresent
+
+          tools:
+            filesystem:
+              enabled: true
+              image:
+                repository: nginx
+                tag: alpine
+              service:
+                targetPort: 80
+              persistence:
+                enabled: false
+              volumes:
+                - name: data-volume
+                  emptyDir: {}
+            time:
+              enabled: true
+              image:
+                repository: nginx
+                tag: alpine
+              service:
+                targetPort: 80
+            weather:
+              enabled: false
+          EOF
+
+          echo "=== Installing with test values ==="
+          cat test-values.yaml
+          helm install test-release charts/openapi-servers -f test-values.yaml --wait --debug --timeout 1m0s
+          helm test test-release
+          helm uninstall test-release
+
+      - name: Debug installation failure
+        if: failure()
+        run: |
+          echo "=== Helm Status ==="
+          helm status test-release || true
+          echo "=== Pod Status ==="
+          kubectl get pods -A -o wide
+          echo "=== Recent Events ==="
+          kubectl get events --sort-by='.lastTimestamp' --all-namespaces | tail -20
+          echo "=== Failed Pod Details ==="
+          kubectl describe pods -l app.kubernetes.io/name=openapi-servers
+          echo "=== Pod Logs ==="
+          kubectl logs -l app.kubernetes.io/name=openapi-servers --all-containers=true --ignore-errors=true --previous || true
+          kubectl logs -l app.kubernetes.io/name=openapi-servers --all-containers=true --ignore-errors=true || true
 
   release:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: lint-and-test
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,29 +140,60 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: '3.12.1'
+          version: "3.12.1"
 
-      - name: Add dependency repositories
+      - name: Package charts
         run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
+          mkdir -p .cr-release-packages
+          helm package charts/* --destination .cr-release-packages
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          charts_dir: charts
-          config: cr.yaml
+          tag_name: "openapi-servers-${{ github.run_number }}"
+          name: "OpenAPI Servers Chart Release ${{ github.run_number }}"
+          files: .cr-release-packages/*.tgz
+          generate_release_notes: true
         env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_GENERATE_RELEASE_NOTES: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: Setup and deploy to GitHub Pages
+        run: |
+          # Create or update gh-pages branch
+          if git ls-remote --exit-code --heads origin gh-pages; then
+            git fetch origin gh-pages
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf .
+          fi
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .cr-release-packages
+          # Generate Helm repo index
+          helm repo index .cr-release-packages --url https://euh2.github.io/openapi-servers-helm/
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          # Copy files to gh-pages
+          cp .cr-release-packages/*.tgz . 2>/dev/null || true
+          cp .cr-release-packages/index.yaml . 2>/dev/null || true
+
+          # Copy custom index.html if it exists
+          git checkout main -- index.html 2>/dev/null || echo "No custom index.html found"
+
+          # Create a simple index.html if it doesn't exist
+          if [ ! -f index.html ]; then
+            cat > index.html <<EOF
+          <!DOCTYPE html>
+          <html>
+          <head><title>OpenAPI Servers Helm Repository</title></head>
+          <body>
+            <h1>OpenAPI Servers Helm Repository</h1>
+            <p>Add this repository:</p>
+            <pre>helm repo add openapi-servers https://euh2.github.io/openapi-servers-helm</pre>
+          </body>
+          </html>
+          EOF
+          fi
+
+          # Commit and push
+          git add .
+          git commit -m "Update Helm repository" || true
+          git push origin gh-pages

@@ -29,7 +29,7 @@ global:
 # Individual tool configurations
 tools:
   filesystem:
-    enabled: true
+    enabled: false
     image:
       repository: openapi-servers-filesystem
       tag: "" # Uses global.tag if empty
@@ -58,7 +58,7 @@ tools:
       pathType: Prefix
 
   weather:
-    enabled: true
+    enabled: false
     image:
       repository: openapi-servers-weather
       tag: ""
@@ -81,7 +81,7 @@ tools:
       pathType: Prefix
 
   memory:
-    enabled: true
+    enabled: false
     image:
       repository: openapi-servers-memory
       tag: ""
@@ -117,7 +117,7 @@ tools:
       pathType: Prefix
 
   slack:
-    enabled: true
+    enabled: false
     image:
       repository: openapi-servers-slack
       tag: ""
@@ -146,7 +146,7 @@ tools:
       pathType: Prefix
 
   time:
-    enabled: true
+    enabled: false
     image:
       repository: openapi-servers-time
       tag: ""
@@ -165,7 +165,7 @@ tools:
       pathType: Prefix
 
   get-user-info:
-    enabled: true
+    enabled: false
     image:
       repository: openapi-servers-get-user-info
       tag: ""
@@ -190,6 +190,7 @@ globalIngress:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/cluster-issuer: nameOfClusterIssuer
   host: api.example.com
   tls:
     enabled: false
