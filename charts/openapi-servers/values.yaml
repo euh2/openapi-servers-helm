@@ -19,12 +19,12 @@ global:
     type: ClusterIP
     port: 8000
 
-  # Global ingress configuration
-  ingress:
-    enabled: false
-    className: ""
-    annotations: {}
-    tls: []
+  # # Global ingress configuration
+  # ingress:
+  #   enabled: false
+  #   className: ""
+  #   annotations: {}
+  #   tls: []
 
 # Individual tool configurations
 tools:
@@ -54,8 +54,12 @@ tools:
 
     ingress:
       enabled: false
+      className: "nginx"
       path: /filesystem
       pathType: Prefix
+      hosts:
+        - host: your-domain.com # Add your actual domain
+        # - host: another-domain.com  # Optional: add more hosts
 
   weather:
     enabled: false
@@ -77,8 +81,12 @@ tools:
 
     ingress:
       enabled: false
+      className: "nginx"
       path: /weather
       pathType: Prefix
+      hosts:
+        - host: your-domain.com # Add your actual domain
+        # - host: another-domain.com  # Optional: add more hosts
 
   memory:
     enabled: false
@@ -113,8 +121,12 @@ tools:
 
     ingress:
       enabled: false
+      className: "nginx"
       path: /memory
       pathType: Prefix
+      hosts:
+        - host: your-domain.com # Add your actual domain
+        # - host: another-domain.com  # Optional: add more hosts
 
   slack:
     enabled: false
@@ -142,8 +154,12 @@ tools:
 
     ingress:
       enabled: false
+      className: "nginx"
       path: /slack
       pathType: Prefix
+      hosts:
+        - host: your-domain.com # Add your actual domain
+        # - host: another-domain.com  # Optional: add more hosts
 
   time:
     enabled: false
@@ -161,8 +177,12 @@ tools:
 
     ingress:
       enabled: false
+      className: "nginx"
       path: /time
       pathType: Prefix
+      hosts:
+        - host: your-domain.com # Add your actual domain
+        # - host: another-domain.com  # Optional: add more hosts
 
   get-user-info:
     enabled: false
@@ -180,8 +200,12 @@ tools:
 
     ingress:
       enabled: false
+      className: "nginx"
       path: /user-info
       pathType: Prefix
+      hosts:
+        - host: your-domain.com # Add your actual domain
+        # - host: another-domain.com  # Optional: add more hosts
 
 # Global ingress for all tools (alternative to individual ingress)
 globalIngress:
