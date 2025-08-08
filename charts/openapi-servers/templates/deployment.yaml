@@ -33,9 +33,8 @@ spec:
         - name: {{ $toolName }}
           securityContext:
             {{- toYaml ($.Values.securityContext | default dict) | nindent 12 }}
-          # image: "{{ $.Values.global.registry }}/{{ $.Values.global.repository }}/{{ $toolConfig.image.repository }}:{{ $toolConfig.image.tag | default $.Values.global.tag }}"
+          image: "{{ $.Values.global.registry }}/{{ $.Values.global.repository }}/{{ $toolConfig.image.name }}:{{ $toolConfig.image.tag | default $.Values.global.tag }}"
           # Simplified approach
-          image: "{{ $toolConfig.image.repository }}:{{ $toolConfig.image.tag | default $.Values.global.tag }}"
           imagePullPolicy: {{ $.Values.global.pullPolicy }}
           ports:
             - name: http

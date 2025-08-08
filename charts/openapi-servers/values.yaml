@@ -31,7 +31,7 @@ tools:
   filesystem:
     enabled: false
     image:
-      repository: openapi-servers-filesystem
+      name: openapi-servers-filesystem
       tag: "" # Uses global.tag if empty
 
     service:
@@ -60,7 +60,7 @@ tools:
   weather:
     enabled: false
     image:
-      repository: openapi-servers-weather
+      name: openapi-servers-weather
       tag: ""
 
     service:
@@ -83,7 +83,7 @@ tools:
   memory:
     enabled: false
     image:
-      repository: openapi-servers-memory
+      name: openapi-servers-memory
       tag: ""
 
     service:
@@ -119,7 +119,7 @@ tools:
   slack:
     enabled: false
     image:
-      repository: openapi-servers-slack
+      name: openapi-servers-slack
       tag: ""
 
     service:
@@ -148,7 +148,7 @@ tools:
   time:
     enabled: false
     image:
-      repository: openapi-servers-time
+      name: openapi-servers-time
       tag: ""
 
     service:
@@ -167,7 +167,7 @@ tools:
   get-user-info:
     enabled: false
     image:
-      repository: openapi-servers-get-user-info
+      name: openapi-servers-get-user-info
       tag: ""
 
     service:
