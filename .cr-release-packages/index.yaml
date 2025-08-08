@@ -5,7 +5,31 @@ entries:
       category: Application
     apiVersion: v2
     appVersion: latest
-    created: "2025-08-08T09:35:31.738698133Z"
+    created: "2025-08-08T11:23:32.744426922Z"
+    description: A Helm chart for deploying OpenAPI Server tools from open-webui/openapi-servers
+    digest: e923faa519fe86613d3e3af3183045f679a7363f8f9fa76a6dd3031a92bed806
+    home: https://github.com/euh2/openapi-servers-helm
+    keywords:
+    - openapi
+    - ai-tools
+    - llm
+    - microservices
+    maintainers:
+    - name: euh2
+      url: https://github.com/euh2
+    name: openapi-servers
+    sources:
+    - https://github.com/open-webui/openapi-servers
+    - https://github.com/euh2/openapi-servers-builder
+    type: application
+    urls:
+    - https://euh2.github.io/openapi-servers-helm/openapi-servers-1.0.7.tgz
+    version: 1.0.7
+  - annotations:
+      category: Application
+    apiVersion: v2
+    appVersion: latest
+    created: "2025-08-08T11:23:32.743675541Z"
     description: A Helm chart for deploying OpenAPI Server tools from open-webui/openapi-servers
     digest: 43ee3eab8a6cd751e7101765ed8e5fd7c06db8d616281edf6dca14031990f16f
     home: https://github.com/euh2/openapi-servers-helm
@@ -29,7 +53,7 @@ entries:
       category: Application
     apiVersion: v2
     appVersion: latest
-    created: "2025-08-08T09:35:31.738004173Z"
+    created: "2025-08-08T11:23:32.742963584Z"
     description: A Helm chart for deploying OpenAPI Server tools from open-webui/openapi-servers
     digest: 6cf748dede5008a44a802d57d4a67849edd597a67fc0332ed951e525c609c3a6
     home: https://github.com/euh2/openapi-servers-helm
@@ -53,7 +77,7 @@ entries:
       category: Application
     apiVersion: v2
     appVersion: latest
-    created: "2025-08-08T09:35:31.737290045Z"
+    created: "2025-08-08T11:23:32.742276143Z"
     description: A Helm chart for deploying OpenAPI Server tools from open-webui/openapi-servers
     digest: 10c0278e7c4e9b3b396a001aadba2802403c09b9faa8947bcebdb3c7e6496cf3
     home: https://github.com/euh2/openapi-servers-helm
@@ -73,4 +97,4 @@ entries:
     urls:
     - https://euh2.github.io/openapi-servers-helm/openapi-servers-1.0.4.tgz
     version: 1.0.4
-generated: "2025-08-08T09:35:31.736385019Z"
+generated: "2025-08-08T11:23:32.741336648Z"
